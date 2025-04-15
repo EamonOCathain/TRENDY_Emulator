@@ -8,8 +8,8 @@ import sys
 sys.path.append(os.path.abspath("/Net/Groups/BSI/work_scratch/ecathain/mpi2/Finished_Scripts/Classes"))
 import paths
 
-INPUT_DIR = os.path.join(paths.RAW_OUTPUT)
-OUTPUT_DIR = os.path.join(paths.CSV)
+INPUT_DIR = "/Net/Groups/BGI/data/DataStructureMDI/DATA/Incoming/trendy/gcb2024/LAND/OUTPUT"
+OUTPUT_DIR = os.path.join(paths.CSV, "CLUSTER")
 SCENARIOS = ['S0', 'S1', 'S2', 'S3']
 
 print(INPUT_DIR)

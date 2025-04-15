@@ -55,8 +55,9 @@ with tqdm(total=total_tasks, desc=f"Processing {args.model}", unit="task") as pb
                 continue
 
             matched_file = None
+            target_suffix = f"_{var}.nc"  # Correct variable suffix
             for f in os.listdir(subdir):
-                if f.endswith(".nc") and f[:-3].split("_")[-1] == var:
+                if f.endswith(target_suffix):
                     matched_file = os.path.join(subdir, f)
                     break
 
@@ -68,60 +69,60 @@ with tqdm(total=total_tasks, desc=f"Processing {args.model}", unit="task") as pb
             relative_path = os.path.relpath(matched_file, data_path)
             new_path = os.path.join(output_path, relative_path)
             os.makedirs(os.path.dirname(new_path), exist_ok=True)
-            
-            # Skip processing if output exists
-            if replace_files == False:
-                if os.path.isfile(new_path):
-                    tqdm.write(f"Skipping existing file: {new_path}")
-                    continue  # This skips to next variable
-                    
+
+            # Move this up here so it applies before anything happens
+            if not replace_files and os.path.isfile(new_path):
+                tqdm.write(f"Skipping existing file: {new_path}")
+                continue  # Skip to next variable
+
             # Define valid timestep mappings
             timestep_map = {
-                "3888.0": ("1700-01-01", "1mon"), # 3880 steps means monthly from 1700-01
-                "324.0":  ("1700-01-01", "365day"), # 324: Yearly from 1700-01
-                "3876.0": ("1701-01-01", "1mon"), # 3876: Monthly from 1701-01 
-                "323.0":  ("1700-01-01", "365day"), # 323: Yearly from 1700-01
-                "1968.0": ("1860-01-01", "1mon"), # 1968: Monthly from 1860-01 
-                "164.0":  ("1860-01-01", "365day"), # 164: Yearly from 1860-01
-                "1488.0": ("1900-01-01", "1mon"), # 1488: Monthly from 1900-01
+                "3888.0": ("1700-01-01", "1mon"),
+                "324.0":  ("1700-01-01", "365day"),
+                "3876.0": ("1701-01-01", "1mon"),
+                "323.0":  ("1700-01-01", "365day"),
+                "1968.0": ("1860-01-01", "1mon"),
+                "164.0":  ("1860-01-01", "365day"),
+                "1488.0": ("1900-01-01", "1mon"),
+                "1" : ("1700-01-01", "1day")
             }
-            
+
             timestep = df.loc[var, col]
-            
-            if timestep in ["1.0", "10.0"]:
-                # This retains only the first timestamp. The only ones with 10 timestamps are CABLE-POP and they are all 0.
-                    try:
-                        with tempfile.TemporaryDirectory() as tmpdir:
-                            temp1 = os.path.join(tmpdir, "step1.nc")
-                            temp2 = os.path.join(tmpdir, "step2.nc")
-                            temp3 = os.path.join(tmpdir, "step3.nc")
 
-                            # 1. Select only the first timestep
-                            cmd1 = ["cdo", "seltimestep,1", matched_file, temp1]
-                            tqdm.write(f"Running: {' '.join(cmd1)}")
-                            subprocess.run(cmd1, check=True)
+            # Special-case short timestep handling
+            if timestep in ["10.0"]:
+                try:
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        temp1 = os.path.join(tmpdir, "step1.nc")
+                        temp2 = os.path.join(tmpdir, "step2.nc")
+                        temp3 = os.path.join(tmpdir, "step3.nc")
 
-                            # 2. Set calendar to 365_day
-                            cmd2 = ["cdo", "-setcalendar,365_day", temp1, temp2]
-                            tqdm.write(f"Running: {' '.join(cmd2)}")
-                            subprocess.run(cmd2, check=True)
+                        # 1. Select only the first timestep
+                        cmd1 = ["cdo", "seltimestep,1", matched_file, temp1]
+                        tqdm.write(f"Running: {' '.join(cmd1)}")
+                        subprocess.run(cmd1, check=True)
 
-                            # 3. Set reference time (time unit: days since ...)
-                            cmd3 = ["cdo", f"-settaxis,1700-01-01,00:00:00,365day", temp2, temp3]
-                            tqdm.write(f"Running: {' '.join(cmd3)}")
-                            subprocess.run(cmd3, check=True)
+                        # 2. Set calendar to 365_day
+                        cmd2 = ["cdo", "-setcalendar,standard", temp1, temp2]
+                        tqdm.write(f"Running: {' '.join(cmd2)}")
+                        subprocess.run(cmd2, check=True)
 
-                            # 4. Move to final path
-                            shutil.move(temp3, new_path)
+                        # 3. Set reference time (time unit: days since ...)
+                        cmd3 = ["cdo", f"-settaxis,1700-01-01,00:00:00,365day", temp2, temp3]
+                        tqdm.write(f"Running: {' '.join(cmd3)}")
+                        subprocess.run(cmd3, check=True)
 
-                        tqdm.write(f"Successfully processed (short time trimmed): {new_path}")
+                        # 4. Move to final path
+                        shutil.move(temp3, new_path)
 
-                    except subprocess.CalledProcessError as e:
-                        tqdm.write(f"\nFailed processing {matched_file}:")
-                        tqdm.write(f"Error: {e.stderr or 'No stderr captured'}")
-                        tqdm.write(f"Output: {e.stdout or 'No stdout captured'}")
+                    tqdm.write(f"Successfully processed (short time trimmed): {new_path}")
 
-                    continue  # Skip rest of loop for these cases
+                except subprocess.CalledProcessError as e:
+                    tqdm.write(f"\nFailed processing {matched_file}:")
+                    tqdm.write(f"Error: {e.stderr or 'No stderr captured'}")
+                    tqdm.write(f"Output: {e.stdout or 'No stdout captured'}")
+
+                continue  # Skip rest of loop for these cases
             
             # Catch unknown cases
             if timestep not in timestep_map:
@@ -141,7 +142,7 @@ with tqdm(total=total_tasks, desc=f"Processing {args.model}", unit="task") as pb
                     # 1. Set calendar first
                     cmd1 = [
                         "cdo",
-                        "-setcalendar,standard",
+                        "-setcalendar,365_day",
                         matched_file,
                         temp1
                     ]

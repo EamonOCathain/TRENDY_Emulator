@@ -14,6 +14,7 @@ CLASSES = f"{BASE}/Classes"
 TIME_CLASS = f"{CLASSES}/Time.py"
 
 # CLUSTER Paths
+TRENDY_CLUSTER = "/Net/Groups/BGI/data/DataStructureMDI/DATA/Incoming/trendy/gcb2024/LAND/"
 
 # Outputs
 OUTPUTS = f"{BASE}/Outputs"

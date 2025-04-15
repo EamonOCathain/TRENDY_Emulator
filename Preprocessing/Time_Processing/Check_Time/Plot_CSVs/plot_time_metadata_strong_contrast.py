@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
 import matplotlib.cm as cm
+import sys
 
 print("Starting script")
 
@@ -11,14 +12,19 @@ print("Starting script")
 sys.path.append(os.path.abspath("/Net/Groups/BSI/work_scratch/ecathain/mpi2/Finished_Scripts/Classes"))
 import paths
 
-csv_dir = os.path.join(paths.CSV)
-plot_dir = os.path.join(paths.GRAPHS)
+csv_dir = "/Net/Groups/BSI/work_scratch/ecathain/mpi2/Outputs/CSVs/Timesteps/Outputs/CLUSTER"
+plot_dir = "/Net/Groups/BSI/work_scratch/ecathain/mpi2/Outputs/Graphs/CLUSTER"
+
+print(f"Processing CSVs in {csv_dir}")
+
+if not os.path.exists(plot_dir):
+    os.mkdir(plot_dir)
 
 # Data categories and titles
-list_keys = ['Exists', 'Units', 'Calendar', 'Num_Timesteps', 'Interval', 'dtype', 'date_range']    
+list_keys = ['Exists', 'Units', 'Calendar', 'Num_Timesteps', 'dtype']    
 list_titles = [
     "Presence of Time Variable", "Unit of Time", "Calendar Type", "Number of Timesteps",
-    "Average Interval of Time", "Data Type of Time", "Date Range"
+ "Data Type of Time"
 ]         
 
 # Store paths
