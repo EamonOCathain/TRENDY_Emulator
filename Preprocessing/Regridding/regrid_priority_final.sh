@@ -16,8 +16,8 @@ fi
 target_dir="$1"
 
 # Base directories
-BASE_INPUT_DIR="/Net/Groups/BGI/data/DataStructureMDI/DATA/Incoming/trendy/gcb2024/LAND/INPUT"
-BASE_OUTPUT_DIR="/Net/Groups/BSI/work_scratch/ecathain/mpi2/TRENDY/Raw/INPUT"
+BASE_INPUT_DIR="/Net/Groups/BGI/data/DataStructureMDI/DATA/Incoming/trendy/gcb2024/LAND/OUTPUT"
+BASE_OUTPUT_DIR="/Net/Groups/BSI/work_scratch/ecathain/mpi2/TRENDY/Raw/OUTPUT"
 
 # Construct full paths
 INPUT_DIR="${BASE_INPUT_DIR%/}/$target_dir"

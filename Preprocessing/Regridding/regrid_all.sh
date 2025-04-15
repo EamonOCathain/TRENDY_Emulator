@@ -3,8 +3,8 @@
 # Takes an input directory to search
 
 # Base directories (fixed)
-BASE_INPUT_DIR="/Net/Groups/BGI/data/DataStructureMDI/DATA/Incoming/trendy/gcb2024/LAND/INPUT"
-BASE_OUTPUT_DIR="/Net/Groups/BSI/work_scratch/ecathain/mpi2/TRENDY/Raw/INPUT"
+BASE_INPUT_DIR="TRENDY_cluster_path"
+BASE_OUTPUT_DIR="path_to_outputs"
 
 # Require relative path as argument
 if [ $# -eq 0 ]; then
@@ -30,6 +30,7 @@ find "$INPUT_DIR" -type f -name "*.nc" | while read -r file; do
     mkdir -p "$(dirname "$output_file")"
 
     echo "Checking: $rel_path"
+
 
     if [[ -f "$output_file" ]]; then
         if cdo -s griddes "$output_file" &> /dev/null; then
