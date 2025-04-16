@@ -1,3 +1,6 @@
+import xarray as xr
+import numpy as np
+
 def extract_np_array(path, lat = 51, lon = 11):
     ds = xr.open_dataarray(path, decode_times=False)
 
@@ -46,3 +49,9 @@ def generate_dt(trimmed_array):
         return dates.astype("datetime64[D]")  # optional: convert to full date
     else:
         print(f"Invalid number of timesteps after trimming. Should be 1488 or 324 but it's {length}")
+        
+def full_extract(path):
+    np_arr=extract_np_array(path)
+    trimmed_arr = trim_array(np_arr)
+    dt = generate_dt(trimmed_arr)
+    return(trimmed_arr,dt)
